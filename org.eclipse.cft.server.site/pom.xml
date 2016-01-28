@@ -15,6 +15,10 @@
 
 	<name>Cloud Foundry Tools</name>
 	
+	<properties>
+		<zip.name>org.eclipse.cft-${unqualifiedVersion}.${buildQualifier}</zip.name>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -22,9 +26,46 @@
 				<artifactId>tycho-p2-repository-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<configuration>
-					<finalName>org.eclipse.cft-${unqualifiedVersion}.${buildQualifier}</finalName>
+					<finalName>${zip.name}</finalName>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<id>update-composite-update-site</id>
+						<phase>package</phase>
+						<configuration>
+							<skip>${skip.composite-update-site}</skip>
+							<target>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+
+								<copy file="dev-compositeArtifacts.xml" tofile="target/compositeArtifacts.xml"/>
+								<copy file="dev-compositeContent.xml" tofile="target/compositeContent.xml"/>
+								<copy file="p2.index" todir="target/"/>
+								
+								<tstamp>
+									<format property="repo.timestamp" pattern="yyMMddHHmmss"/>
+								</tstamp>
+		
+								<replace file="target/compositeArtifacts.xml" token="%TIMESTAMP%" value="${repo.timestamp}" summary="yes" />
+								<replace file="target/compositeArtifacts.xml" token="%BUILD-ID%" value="${zip.name}" summary="yes" />
+
+								<replace file="target/compositeContent.xml" token="%TIMESTAMP%" value="${repo.timestamp}" summary="yes" />
+								<replace file="target/compositeContent.xml" token="%BUILD-ID%" value="${zip.name}" summary="yes" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+
+				</executions>
+			</plugin>
+			
+			
 		</plugins>
 	</build>
 
